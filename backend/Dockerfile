@@ -15,12 +15,16 @@ RUN npm run build
 
 FROM node:22-alpine AS runtime
 WORKDIR /app
-ENV NODE_ENV=production
 RUN addgroup -S nodejs && adduser -S nestjs -G nodejs
 
 COPY package.json package-lock.json ./
+# NODE_ENV=production must not be set yet — npm treats it as an implicit
+# --omit=dev during install, which would silently drop prisma/tsx (both
+# devDependencies) that the entrypoint needs at boot for migrate/seed.
 RUN npm ci
+ENV NODE_ENV=production
 COPY --from=build /app/dist ./dist
+COPY --from=build /app/src/generated ./src/generated
 COPY --from=build /app/prisma ./prisma
 COPY --from=build /app/prisma.config.ts ./prisma.config.ts
 COPY docker-entrypoint.sh ./docker-entrypoint.sh
