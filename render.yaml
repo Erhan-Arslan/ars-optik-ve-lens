@@ -28,4 +28,4 @@ services:
       - key: NODE_ENV
         value: production
       - key: CORS_ORIGIN
-        value: "*"
+        value: "https://frontend-nine-sage-25.vercel.app"
