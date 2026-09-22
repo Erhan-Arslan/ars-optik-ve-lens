@@ -11,9 +11,10 @@ async function bootstrap() {
 
   app.useLogger(app.get(Logger));
   app.use(helmet());
+  const corsOrigin = process.env.CORS_ORIGIN ?? 'http://localhost:3000';
   app.enableCors({
-    origin: process.env.CORS_ORIGIN?.split(',') ?? 'http://localhost:3000',
-    credentials: true,
+    origin: corsOrigin === '*' ? '*' : corsOrigin.split(','),
+    credentials: corsOrigin !== '*',
   });
 
   app.useGlobalPipes(
