@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
 
 const SPLASH_SESSION_KEY = "ars-splash-shown";
 
@@ -18,7 +17,18 @@ export function SplashIntro() {
     if (!mounted) return;
     window.sessionStorage.setItem(SPLASH_SESSION_KEY, "1");
     const timer = setTimeout(() => setFading(true), 2500);
-    return () => clearTimeout(timer);
+
+    // The overlay never captures pointer events (see className below), so a
+    // click on it also reaches whatever real button/link sits underneath —
+    // no interaction gets silently swallowed while the splash is showing.
+    // This window listener just uses that same click to dismiss early.
+    const onClick = () => setFading(true);
+    window.addEventListener("click", onClick);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("click", onClick);
+    };
   }, [mounted]);
 
   if (!mounted) return null;
@@ -27,20 +37,13 @@ export function SplashIntro() {
     <motion.div
       role="presentation"
       aria-hidden="true"
-      onClick={() => setFading(true)}
       initial={{ opacity: 1 }}
       animate={{ opacity: fading ? 0 : 1 }}
       transition={{ duration: 0.55, ease: [0.4, 0, 1, 1] }}
       onAnimationComplete={() => {
         if (fading) setMounted(false);
       }}
-      className={cn(
-        "fixed inset-0 z-100 flex cursor-pointer items-center justify-center bg-ink-950",
-        // Set the instant fading starts, not once the fade finishes —
-        // otherwise clicks on the real page underneath get swallowed for
-        // the whole ~0.5s the overlay is still visually (if faintly) here.
-        fading && "pointer-events-none",
-      )}
+      className="pointer-events-none fixed inset-0 z-100 flex items-center justify-center bg-ink-950"
     >
       <div className="bg-noise absolute inset-0" />
       <div
