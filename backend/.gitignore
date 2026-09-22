@@ -1,0 +1,21 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+*.tsbuildinfo
+
+# Env
+.env
+.env.local
+
+# Logs
+*.log
+
+# Prisma
+src/generated
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea

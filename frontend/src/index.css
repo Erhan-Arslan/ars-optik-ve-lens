@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+@theme {
+  /* Brand — extracted from ARS Optik ve Lens logo (canvas pixel sampling) */
+  --color-gold-50: #fbf5e9;
+  --color-gold-100: #f5e7c9;
+  --color-gold-200: #ead29b;
+  --color-gold-300: #ddb86d;
+  --color-gold-400: #d2a34e;
+  --color-gold-500: #c89a3e;
+  --color-gold-600: #ad8032;
+  --color-gold-700: #8c662a;
+  --color-gold-800: #6b4e22;
+  --color-gold-900: #4a3618;
+
+  --color-bronze-50: #f6ede3;
+  --color-bronze-100: #e9d2b8;
+  --color-bronze-200: #d6ad82;
+  --color-bronze-300: #be8752;
+  --color-bronze-400: #ac712e;
+  --color-bronze-500: #9c6024;
+  --color-bronze-600: #7e4c1d;
+  --color-bronze-700: #603a17;
+  --color-bronze-800: #422810;
+  --color-bronze-900: #2a190a;
+
+  --color-champagne-50: #fbfaf0;
+  --color-champagne-100: #f6f1d6;
+  --color-champagne-200: #efe7ae;
+  --color-champagne-300: #e9de8f;
+  --color-champagne-400: #e6da80;
+  --color-champagne-500: #e4d878;
+  --color-champagne-600: #c7bb55;
+  --color-champagne-700: #9c933f;
+
+  --color-ink-50: #f7f5f2;
+  --color-ink-100: #ede8e1;
+  --color-ink-200: #d8cfc2;
+  --color-ink-300: #b8aa97;
+  --color-ink-400: #8f7d68;
+  --color-ink-500: #6b5b49;
+  --color-ink-600: #4f4133;
+  --color-ink-700: #382d22;
+  --color-ink-800: #241c15;
+  --color-ink-900: #16110c;
+  --color-ink-950: #0d0a07;
+
+  --font-display: "Fraunces", "Georgia", serif;
+  --font-sans: "Manrope", "Segoe UI", sans-serif;
+
+  --shadow-elevated: 0 1px 2px rgb(22 17 12 / 0.06), 0 8px 24px -4px rgb(74 54 24 / 0.16);
+  --shadow-floating: 0 4px 8px rgb(22 17 12 / 0.08), 0 24px 48px -12px rgb(74 54 24 / 0.28);
+  --shadow-gold: 0 8px 30px -6px rgb(200 154 62 / 0.35);
+
+  --animate-fade-up: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-shimmer: shimmer 2s linear infinite;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes shimmer {
+    from {
+      background-position: -200% 0;
+    }
+    to {
+      background-position: 200% 0;
+    }
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-ink-50);
+    color: var(--color-ink-800);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+  }
+
+  ::selection {
+    background-color: var(--color-gold-200);
+    color: var(--color-ink-900);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-gold-500);
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .bg-noise {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  }
+}

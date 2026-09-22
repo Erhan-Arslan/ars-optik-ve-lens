@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Env
+.env
+.env.local
+!.env.example
+
+# Docker volumes / local data
+.pgdata/
+
+# Screenshots used for local design verification
+.screenshots/
+
+# Root-level scratch tooling (e.g. Puppeteer used for local visual checks) —
+# not part of the shipped app.
+/package.json
+/package-lock.json
+
+# OS
+.DS_Store
+Thumbs.db

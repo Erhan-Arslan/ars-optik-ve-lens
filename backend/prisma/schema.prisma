@@ -1,0 +1,217 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ProductCategory {
+  CERCEVE
+  GUNES_GOZLUGU
+  LENS
+}
+
+enum FrameShape {
+  YUVARLAK
+  KARE
+  KELEBEK
+  PILOT
+  OVAL
+  DIKDORTGEN
+}
+
+enum Gender {
+  KADIN
+  ERKEK
+  UNISEX
+}
+
+enum OrderStatus {
+  HAZIRLANIYOR
+  KARGODA
+  TESLIM_EDILDI
+  IPTAL
+}
+
+enum PaymentProvider {
+  MOCK
+  IYZICO
+  STRIPE
+  PAYTR
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  role         Role       @default(USER)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  addresses    Address[]
+  orders       Order[]
+  favorites    Favorite[]
+
+  @@map("users")
+}
+
+model Address {
+  id          String  @id @default(cuid())
+  userId      String
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  fullName    String
+  phone       String
+  city        String
+  district    String
+  addressLine String
+  zip         String
+  isDefault   Boolean @default(false)
+  orders      Order[]
+
+  @@index([userId])
+  @@map("addresses")
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@map("favorites")
+}
+
+model Product {
+  id                   String          @id @default(cuid())
+  slug                 String          @unique
+  name                 String
+  brand                String
+  category             ProductCategory
+  shape                FrameShape?
+  gender               Gender
+  price                Decimal         @db.Decimal(10, 2)
+  compareAtPrice       Decimal?        @db.Decimal(10, 2)
+  description          String
+  material             String?
+  isNew                Boolean         @default(false)
+  isBestseller         Boolean         @default(false)
+  rating               Float           @default(0)
+  reviewCount          Int             @default(0)
+  requiresPrescription Boolean         @default(false)
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  colors               ProductColor[]
+  orderItems           OrderItem[]
+  favorites            Favorite[]
+
+  @@index([category])
+  @@map("products")
+}
+
+model ProductColor {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String
+  hex       String
+
+  @@index([productId])
+  @@map("product_colors")
+}
+
+model LensType {
+  id             String      @id @default(cuid())
+  code           String      @unique
+  name           String
+  description    String
+  priceModifier  Decimal     @db.Decimal(10, 2)
+  orderItems     OrderItem[]
+
+  @@map("lens_types")
+}
+
+model LensCoating {
+  id            String      @id @default(cuid())
+  code          String      @unique
+  name          String
+  description   String
+  priceModifier Decimal     @db.Decimal(10, 2)
+  orderItems    OrderItem[]
+
+  @@map("lens_coatings")
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  orderNumber String      @unique
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  addressId   String
+  address     Address     @relation(fields: [addressId], references: [id])
+  status      OrderStatus @default(HAZIRLANIYOR)
+  subtotal    Decimal     @db.Decimal(10, 2)
+  shipping    Decimal     @db.Decimal(10, 2)
+  total       Decimal     @db.Decimal(10, 2)
+  items       OrderItem[]
+  payment     Payment?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([userId])
+  @@map("orders")
+}
+
+model OrderItem {
+  id                String       @id @default(cuid())
+  orderId           String
+  order             Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId         String
+  product           Product      @relation(fields: [productId], references: [id])
+  productNameSnapshot String
+  unitPrice         Decimal      @db.Decimal(10, 2)
+  quantity          Int
+  selectedColor     String
+  lensTypeId        String?
+  lensType          LensType?    @relation(fields: [lensTypeId], references: [id])
+  lensCoatingId     String?
+  lensCoating       LensCoating? @relation(fields: [lensCoatingId], references: [id])
+  prescriptionOdSphere String?
+  prescriptionOsSphere String?
+  prescriptionNotes    String?
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model Payment {
+  id          String          @id @default(cuid())
+  orderId     String          @unique
+  order       Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  provider    PaymentProvider @default(MOCK)
+  status      PaymentStatus   @default(PENDING)
+  amount      Decimal         @db.Decimal(10, 2)
+  providerRef String?
+  createdAt   DateTime        @default(now())
+
+  @@map("payments")
+}
