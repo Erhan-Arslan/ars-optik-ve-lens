@@ -1,9 +1,3 @@
-databases:
-  - name: ars-optik-db
-    plan: free
-    databaseName: ars_optik_db
-    user: ars_optik
-
 services:
   - type: web
     name: ars-optik-backend
@@ -13,10 +7,9 @@ services:
     plan: free
     healthCheckPath: /health
     envVars:
+      # Neon PostgreSQL (Render free DB expires after 30 days); value is set in the Render dashboard.
       - key: DATABASE_URL
-        fromDatabase:
-          name: ars-optik-db
-          property: connectionString
+        sync: false
       - key: JWT_ACCESS_SECRET
         generateValue: true
       - key: JWT_REFRESH_SECRET
