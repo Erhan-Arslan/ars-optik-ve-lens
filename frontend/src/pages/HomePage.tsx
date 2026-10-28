@@ -7,6 +7,7 @@ import { ProductGrid } from "@/components/product/ProductGrid";
 import { buttonVariants } from "@/components/ui/Button";
 import { FrameIllustration } from "@/components/product/FrameIllustration";
 import type { Product } from "@/types";
+import { publicAsset } from "@/lib/utils";
 
 const categories = [
   { label: "Çerçeveler", to: "/katalog?kategori=cerceve", shape: "kelebek" as const, category: "cerceve" as const, color: "#C89A3E" },
@@ -125,7 +126,7 @@ export function HomePage() {
             </motion.div>
 
             <img
-              src="/logo.png"
+              src={publicAsset("logo.png")}
               alt="ARS Optik ve Lens"
               className="relative h-56 w-auto drop-shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:h-72 lg:h-80"
             />
@@ -240,7 +241,7 @@ export function HomePage() {
           >
             <div className="absolute h-64 w-64 rounded-full bg-gold-500/15 blur-3xl sm:h-80 sm:w-80" />
             <img
-              src="/logo.png"
+              src={publicAsset("logo.png")}
               alt="ARS Optik ve Lens aslan amblemi"
               className="relative h-52 w-auto opacity-95 drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)] sm:h-64"
             />

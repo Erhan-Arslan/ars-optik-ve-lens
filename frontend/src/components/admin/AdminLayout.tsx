@@ -1,6 +1,6 @@
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { ArrowLeft, Package, ShoppingBag } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, publicAsset } from "@/lib/utils";
 
 const navItems = [
   { to: "/admin/urunler", label: "Ürünler", icon: Package },
@@ -11,7 +11,7 @@ export function AdminLayout() {
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-7xl flex-col gap-8 px-4 py-10 sm:px-6 lg:flex-row lg:px-8">
       <aside className="flex-none lg:w-56">
-        <img src="/logo.png" alt="ARS Optik ve Lens" className="h-12 w-auto" />
+        <img src={publicAsset("logo.png")} alt="ARS Optik ve Lens" className="h-12 w-auto" />
         <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-bronze-500">
           Yönetim Paneli
         </p>

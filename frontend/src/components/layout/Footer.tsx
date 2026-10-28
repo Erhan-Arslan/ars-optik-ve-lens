@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { publicAsset } from "@/lib/utils";
 
 function InstagramGlyph() {
   return (
@@ -59,7 +60,7 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 gap-10 sm:grid-cols-4">
           <div className="col-span-2 sm:col-span-1">
-            <img src="/logo.png" alt="ARS Optik ve Lens" className="h-16 w-auto brightness-125" />
+            <img src={publicAsset("logo.png")} alt="ARS Optik ve Lens" className="h-16 w-auto brightness-125" />
             <p className="mt-4 max-w-[220px] text-sm leading-relaxed text-ink-400">
               1998'den beri Türkiye'nin dört bir yanında görme sağlığına ve zarafete eşlik ediyoruz.
             </p>

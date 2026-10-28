@@ -20,7 +20,7 @@ import { SplashIntro } from "@/components/layout/SplashIntro";
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <SplashIntro />
       <Routes>
         <Route element={<Layout />}>

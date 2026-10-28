@@ -136,12 +136,18 @@ async function main() {
     });
   }
 
+  // In production the password must come from ADMIN_PASSWORD and is re-applied on every seed,
+  // so rotating the env var rotates the live admin password. Locally a dev default is used.
   const adminEmail = 'admin@arsoptik.com';
-  const adminPassword = 'ArsOptik2026!';
+  const envPassword = process.env.ADMIN_PASSWORD;
+  if (!envPassword && process.env.NODE_ENV === 'production') {
+    throw new Error('ADMIN_PASSWORD tanımlı değil; production ortamında admin seed edilemez.');
+  }
+  const adminPassword = envPassword ?? 'ArsOptik2026!';
   const passwordHash = await bcrypt.hash(adminPassword, 12);
   await prisma.user.upsert({
     where: { email: adminEmail },
-    update: { role: Role.ADMIN },
+    update: envPassword ? { role: Role.ADMIN, passwordHash } : { role: Role.ADMIN },
     create: {
       email: adminEmail,
       passwordHash,
@@ -152,7 +158,11 @@ async function main() {
   });
 
   console.log(`Seed tamamlandı: ${products.length} ürün, ${lensTypes.length} lens tipi, ${lensCoatings.length} kaplama.`);
-  console.log(`Admin girişi -> e-posta: ${adminEmail} / şifre: ${adminPassword} (lütfen ilk girişten sonra değiştirin)`);
+  console.log(
+    envPassword
+      ? `Admin girişi -> e-posta: ${adminEmail} / şifre: ADMIN_PASSWORD ortam değişkeni`
+      : `Admin girişi -> e-posta: ${adminEmail} / şifre: ${adminPassword} (yerel geliştirme varsayılanı)`,
+  );
 }
 
 main()

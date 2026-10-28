@@ -12,3 +12,8 @@ export function formatPrice(amountInTRY: number): string {
     maximumFractionDigits: 0,
   }).format(amountInTRY);
 }
+
+/** Resolves a file in `public/` against Vite's base path (e.g. GitHub Pages sub-path). */
+export function publicAsset(path: string): string {
+  return `${import.meta.env.BASE_URL}${path.replace(/^\//, "")}`;
+}

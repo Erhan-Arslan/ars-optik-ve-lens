@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { publicAsset } from "@/lib/utils";
 
 const SPLASH_SESSION_KEY = "ars-splash-shown";
 
@@ -58,7 +59,7 @@ export function SplashIntro() {
         style={{ aspectRatio: "747 / 585", filter: "contrast(1.1) saturate(1.12)" }}
       >
         <motion.img
-          src="/logo-frame.png"
+          src={publicAsset("logo-frame.png")}
           alt=""
           initial={{ opacity: 0, scale: 0.94 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -66,7 +67,7 @@ export function SplashIntro() {
           className="absolute inset-0 h-full w-full object-contain"
         />
         <motion.img
-          src="/logo-lion.png"
+          src={publicAsset("logo-lion.png")}
           alt=""
           initial={{ opacity: 0, y: -230, rotate: -12 }}
           animate={{ opacity: 1, y: 0, rotate: 0 }}

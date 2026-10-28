@@ -24,14 +24,10 @@ docker-compose.yml   postgres, redis, backend, frontend
 
 ### Admin girişi
 
-Seed script'i bir yönetici hesabı oluşturur:
+Seed script'i `admin@arsoptik.com` adresiyle bir yönetici hesabı oluşturur.
 
-```
-e-posta: admin@arsoptik.com
-şifre:   ArsOptik2026!
-```
-
-İlk girişten sonra bu şifreyi değiştirmeniz önerilir (şu an bunun için bir "şifre değiştir" ekranı yok — veritabanından güncellemeniz gerekir).
+- **Yerel geliştirme:** `ADMIN_PASSWORD` tanımlı değilse `backend/prisma/seed.ts` içindeki geliştirme varsayılanı kullanılır.
+- **Production (Render):** Şifre `ADMIN_PASSWORD` ortam değişkeninden okunur ve her açılışta yeniden uygulanır; değişkeni değiştirip yeniden deploy etmek şifreyi döndürür. Değeri Render panelinde servis → *Environment* altında görebilirsiniz.
 
 ## Hızlı Başlangıç (Docker)
 
@@ -82,3 +78,8 @@ npm run test:e2e   # auth, checkout, admin, favoriler ve adres defteri akışlar
 - Gerçek ödeme sağlayıcısı entegrasyonu (iyzico önerilir — Türkiye pazarı için).
 - Reçete dosyası yükleme için gerçek bir depolama servisi (S3 uyumlu) bağlanması — şu an sadece metin alanları var.
 - Admin panelinde ikinci bir yönetici davet etme / şifre sıfırlama akışı.
+
+## Yayın (Deploy)
+
+- **Frontend → GitHub Pages:** `main` dalına `frontend/` altında yapılan her push, `.github/workflows/deploy-pages.yml` ile derlenip https://erhan-arslan.github.io/ars-optik-ve-lens/ adresine yayınlanır. API adresi repo değişkeni `VITE_API_URL` ile verilir (*Settings → Secrets and variables → Actions → Variables*).
+- **Backend → Render:** `render.yaml` blueprint'i. `CORS_ORIGIN` GitHub Pages kökenine (`https://erhan-arslan.github.io`) ayarlıdır.

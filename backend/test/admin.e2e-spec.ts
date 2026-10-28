@@ -21,7 +21,7 @@ describe('Admin flow (e2e)', () => {
     // Seeded admin user (see prisma/seed.ts)
     const adminLogin = await request(app.getHttpServer())
       .post('/auth/login')
-      .send({ email: 'admin@arsoptik.com', password: 'ArsOptik2026!' });
+      .send({ email: 'admin@arsoptik.com', password: process.env.ADMIN_PASSWORD ?? 'ArsOptik2026!' });
     adminToken = adminLogin.body.accessToken;
 
     const regularRegister = await request(app.getHttpServer())

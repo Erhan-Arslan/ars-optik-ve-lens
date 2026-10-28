@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Heart, Menu, Search, ShoppingBag, User, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, publicAsset } from "@/lib/utils";
 import { useCartStore, cartItemCount } from "@/store/cart";
 import { useAuthStore } from "@/store/auth";
 import { useFavoritesStore } from "@/store/favorites";
@@ -52,7 +52,7 @@ export function Navbar() {
     <header className="sticky top-0 z-40 border-b border-ink-100 bg-ink-50/85 backdrop-blur-md">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link to="/" className="flex items-center gap-3">
-          <img src="/logo.png" alt="ARS Optik ve Lens" className="h-14 w-auto" />
+          <img src={publicAsset("logo.png")} alt="ARS Optik ve Lens" className="h-14 w-auto" />
         </Link>
 
         <nav className="hidden items-center gap-8 lg:flex">
