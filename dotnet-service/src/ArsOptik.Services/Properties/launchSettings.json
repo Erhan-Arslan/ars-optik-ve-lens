@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "http": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DATABASE_URL": "postgresql://ars_optik:ars_optik_dev@localhost:5432/ars_optik_db?schema=public",
+        "JWT_ACCESS_SECRET": "dev-only-access-secret-change-me-32+chars",
+        "CORS_ORIGIN": "http://localhost:3000"
+      }
+    }
+  }
+}

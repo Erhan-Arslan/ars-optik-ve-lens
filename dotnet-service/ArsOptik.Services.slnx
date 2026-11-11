@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ArsOptik.Services/ArsOptik.Services.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ArsOptik.Services.Tests/ArsOptik.Services.Tests.csproj" />
+  </Folder>
+</Solution>

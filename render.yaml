@@ -6,6 +6,9 @@ services:
     dockerContext: ./backend
     plan: free
     healthCheckPath: /health
+    buildFilter:
+      paths:
+        - backend/**
     envVars:
       # Neon PostgreSQL (Render free DB expires after 30 days); value is set in the Render dashboard.
       - key: DATABASE_URL
@@ -22,5 +25,28 @@ services:
         value: 7d
       - key: NODE_ENV
         value: production
+      - key: CORS_ORIGIN
+        value: "https://erhan-arslan.github.io"
+
+  - type: web
+    name: ars-optik-dotnet
+    runtime: docker
+    dockerfilePath: ./dotnet-service/Dockerfile
+    dockerContext: ./dotnet-service
+    plan: free
+    healthCheckPath: /health
+    buildFilter:
+      paths:
+        - dotnet-service/**
+    envVars:
+      # Same Neon database as the backend (read-only use); set in the Render dashboard.
+      - key: DATABASE_URL
+        sync: false
+      # Validates the backend's tokens, so it must be the backend's secret.
+      - key: JWT_ACCESS_SECRET
+        fromService:
+          type: web
+          name: ars-optik-backend
+          envVarKey: JWT_ACCESS_SECRET
       - key: CORS_ORIGIN
         value: "https://erhan-arslan.github.io"

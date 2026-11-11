@@ -34,13 +34,14 @@ services:
     environment:
       DATABASE_URL: postgresql://ars_optik:ars_optik_dev@postgres:5432/ars_optik_db?schema=public
       REDIS_URL: redis://redis:6379
-      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change-me-access-secret}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-dev-only-access-secret-change-me-32+chars}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change-me-refresh-secret}
       JWT_ACCESS_EXPIRES_IN: 15m
       JWT_REFRESH_EXPIRES_IN: 7d
       PORT: 4000
       CORS_ORIGIN: http://localhost:3000
       NODE_ENV: production
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-ArsOptik2026!}
     ports:
       - "4000:4000"
     depends_on:
@@ -48,6 +49,21 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+
+  dotnet-service:
+    build:
+      context: ./dotnet-service
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://ars_optik:ars_optik_dev@postgres:5432/ars_optik_db?schema=public
+      # Must match the backend: the .NET service validates the tokens NestJS issues.
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-dev-only-access-secret-change-me-32+chars}
+      CORS_ORIGIN: http://localhost:3000
+      PORT: 5000
+    ports:
+      - "5000:5000"
+    depends_on:
+      - backend
 
   frontend:
     build:

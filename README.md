@@ -6,13 +6,16 @@ Türkiye pazarına yönelik premium gözlük, güneş gözlüğü ve lens e-tica
 
 ```
 /frontend   React 19 + Vite + TypeScript + Tailwind CSS v4 + Framer Motion
-/backend    NestJS + Prisma 7 (driver adapter) + PostgreSQL + Redis
-docker-compose.yml   postgres, redis, backend, frontend
+/backend          NestJS + Prisma 7 (driver adapter) + PostgreSQL + Redis
+/dotnet-service   ASP.NET Core (.NET 11) + EF Core — NestJS'in yanında çalışan yardımcı servis
+docker-compose.yml   postgres, redis, backend, dotnet-service, frontend
 ```
 
 - **Ödeme:** `PaymentProvider` arayüzü arkasında sandbox bir mock sağlayıcı (`MockPaymentProvider`) çalışır. Gerçek bir sağlayıcı (iyzico, PayTR, Stripe) eklemek için `backend/src/payments/` altına arayüzü uygulayan yeni bir sınıf yazıp `PaymentsModule`de bağlamak yeterli.
 - **Kimlik doğrulama:** JWT access (15dk) + refresh (7 gün) token çifti, bcrypt şifre hash'leme, rol bazlı yetkilendirme (`user` / `admin`).
 - **Marka paleti:** `frontend/src/index.css` içindeki `@theme` bloğu — logo üzerinden piksel örneklemesiyle çıkarılmış altın/bronz/şampanya tonları.
+
+- **.NET servisi:** NestJS'in ürettiği JWT'leri aynı `JWT_ACCESS_SECRET` ile doğrular, rolü NestJS gibi `users` tablosundan okur. Veritabanının şeması ve migration'ları NestJS/Prisma'ya aittir; .NET servisi tabloları yalnızca okur. API dokümantasyonu: http://localhost:5000/docs
 
 ## Özellikler
 
@@ -82,4 +85,5 @@ npm run test:e2e   # auth, checkout, admin, favoriler ve adres defteri akışlar
 ## Yayın (Deploy)
 
 - **Frontend → GitHub Pages:** `main` dalına `frontend/` altında yapılan her push, `.github/workflows/deploy-pages.yml` ile derlenip https://erhan-arslan.github.io/ars-optik-ve-lens/ adresine yayınlanır. API adresi repo değişkeni `VITE_API_URL` ile verilir (*Settings → Secrets and variables → Actions → Variables*).
+- **.NET servisi → Render:** `render.yaml` içindeki `ars-optik-dotnet`. `DATABASE_URL` Render panelinden girilir (backend ile aynı Neon adresi), `JWT_ACCESS_SECRET` backend'den otomatik alınır. Testler `.github/workflows/dotnet-service.yml` ile her push'ta çalışır (`cd dotnet-service && dotnet test`).
 - **Backend → Render:** `render.yaml` blueprint'i. `CORS_ORIGIN` GitHub Pages kökenine (`https://erhan-arslan.github.io`) ayarlıdır.
