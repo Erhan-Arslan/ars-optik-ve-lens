@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using ArsOptik.Services.Auth;
 using ArsOptik.Services.Data;
+using ArsOptik.Services.Invoices;
 using ArsOptik.Services.Prescriptions;
 using ArsOptik.Services.Realtime;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -51,6 +52,7 @@ builder.Services.AddArsOptikDatabase();
 builder.Services.AddNestJwtAuthentication();
 builder.Services.AddPrescriptionAnalysis();
 builder.Services.AddRealtime();
+builder.Services.AddInvoices();
 
 var app = builder.Build();
 
@@ -58,9 +60,10 @@ app.UseForwardedHeaders();
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 app.UseCors();
-app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
+// After authentication: the invoice limit is partitioned per signed-in user.
+app.UseRateLimiter();
 
 app.MapOpenApi();
 app.MapScalarApiReference("/docs", options => options.WithTitle("ARS Optik .NET Servisi"));
@@ -71,6 +74,7 @@ app.MapGet("/health", () => Results.Ok(new { status = "ok" }))
 app.MapAccountEndpoints();
 app.MapPrescriptionEndpoints();
 app.MapRealtimeEndpoints();
+app.MapInvoiceEndpoints();
 
 app.Run();
 

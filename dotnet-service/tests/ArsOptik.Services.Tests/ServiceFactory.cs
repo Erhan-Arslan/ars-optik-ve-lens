@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using ArsOptik.Services.Auth;
 using ArsOptik.Services.Data;
+using ArsOptik.Services.Invoices;
 using ArsOptik.Services.Prescriptions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -21,6 +22,7 @@ public sealed class ServiceFactory : WebApplicationFactory<Program>
 
     public static readonly AppUser Customer = new("user-1", "musteri@arsoptik.com", "Ayşe", "Yılmaz", UserRole.User);
     public static readonly AppUser Admin = new("admin-1", "admin@arsoptik.com", "Admin", "Kullanıcı", UserRole.Admin);
+    public static readonly AppUser OtherCustomer = new("user-2", "baska@arsoptik.com", "Mehmet", "Demir", UserRole.User);
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -29,8 +31,9 @@ public sealed class ServiceFactory : WebApplicationFactory<Program>
         builder.UseSetting("INTERNAL_API_KEY", InternalApiKey);
         builder.ConfigureServices(services =>
         {
-            services.Replace(ServiceDescriptor.Scoped<IUserDirectory>(_ => new StubUserDirectory([Customer, Admin])));
+            services.Replace(ServiceDescriptor.Scoped<IUserDirectory>(_ => new StubUserDirectory([Customer, Admin, OtherCustomer])));
             services.Replace(ServiceDescriptor.Scoped<ILensIndexCatalog>(_ => new StubLensIndexCatalog()));
+            services.Replace(ServiceDescriptor.Scoped<IInvoiceDataSource>(_ => new StubInvoiceDataSource()));
         });
     }
 
@@ -55,6 +58,29 @@ public sealed class ServiceFactory : WebApplicationFactory<Program>
             SigningCredentials = new SigningCredentials(
                 new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)), SecurityAlgorithms.HmacSha256),
         });
+    }
+
+    /// <summary>A prescription order with Turkish text, owned by <see cref="Customer"/>.</summary>
+    public static readonly InvoiceData SampleInvoice = new(
+        "ARS123456",
+        new DateTimeOffset(2026, 11, 12, 12, 30, 0, TimeSpan.Zero),
+        "Hazırlanıyor",
+        "Ödendi",
+        new InvoiceCustomer("Ayşe Yılmaz", Customer.Email),
+        new InvoiceAddress("Ayşe Yılmaz", "05551234567", "Şehit Öğretmen Sk. No:3 Daire 5", "Üsküdar", "İstanbul", "34664"),
+        [
+            new InvoiceLine("Leo Yuvarlak Çerçeve", ["Renk: Antik Altın", "Tek Odak", "Mavi Işık Filtresi", "Ultra İnce (1.74)"], 1, 6250m,
+                new InvoicePrescription(new InvoiceEye("-4.25", -0.75m, 180), new InvoiceEye("-3.75", null, null), 62m)),
+            new InvoiceLine("Günlük Tek Kullanımlık Lens (30'lu Kutu)", ["Renk: Şeffaf"], 2, 1250m, null),
+        ],
+        8750m,
+        0m,
+        8750m);
+
+    private sealed class StubInvoiceDataSource : IInvoiceDataSource
+    {
+        public Task<InvoiceSource?> FindAsync(string orderNumber, CancellationToken cancellationToken) =>
+            Task.FromResult(orderNumber == SampleInvoice.OrderNumber ? new InvoiceSource(Customer.Id, SampleInvoice) : null);
     }
 
     /// <summary>Same rows as the NestJS seed.</summary>

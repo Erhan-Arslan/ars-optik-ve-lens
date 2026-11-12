@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { fetchMyOrders } from "@/services/orders.service";
 import { formatPrice, cn } from "@/lib/utils";
 import { AddressBook } from "@/components/account/AddressBook";
+import { InvoiceDownloadButton } from "@/components/orders/InvoiceDownloadButton";
 import type { Order, OrderStatus } from "@/types";
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
@@ -128,7 +129,7 @@ export function AccountPage() {
             {orders && orders.length > 0 && (
               <ul className="mt-6 flex flex-col divide-y divide-ink-100">
                 {orders.map((order) => (
-                  <li key={order.id} className="flex items-center justify-between gap-4 py-4">
+                  <li key={order.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 py-4">
                     <div>
                       <p className="text-sm font-medium text-ink-900">#{order.orderNumber}</p>
                       <p className="mt-0.5 text-xs text-ink-500">
@@ -146,6 +147,7 @@ export function AccountPage() {
                         {STATUS_LABELS[order.status]}
                       </Badge>
                       <span className="font-display text-sm text-ink-900">{formatPrice(order.total)}</span>
+                      <InvoiceDownloadButton orderNumber={order.orderNumber} />
                     </div>
                   </li>
                 ))}

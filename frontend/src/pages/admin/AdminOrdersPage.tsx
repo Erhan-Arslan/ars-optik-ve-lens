@@ -136,7 +136,7 @@ export function AdminOrdersPage() {
                   {expandedId === order.id && (
                     <tr id={`order-detail-${order.id}`}>
                       <td colSpan={6} className="bg-ink-50/60 px-4 py-4">
-                        <OrderItemsDetail items={order.items} />
+                        <OrderItemsDetail orderNumber={order.orderNumber} items={order.items} />
                       </td>
                     </tr>
                   )}

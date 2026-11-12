@@ -25,6 +25,7 @@ docker-compose.yml   postgres, redis, backend, dotnet-service, frontend
 - Sepet + Ödeme (mock ödeme sağlayıcısı, kayıtlı adresten hızlı doldurma)
 - Kullanıcı hesabı: sipariş geçmişi, adres defteri (varsayılan adres desteğiyle), favorilerim
 - **Canlı sipariş bildirimleri (.NET SignalR):** Ödemesi alınan her sipariş ve sipariş durumu değişikliği NestJS'ten .NET servisine (`POST /internal/order-events`, `INTERNAL_API_KEY` ile korunur) iletilir; .NET bunu `/hubs/admin-orders` SignalR hub'ı üzerinden açık admin panellerine yayınlar. Panelde bildirim, menüde yeni sipariş sayacı ve sayfa yenilemeden güncellenen sipariş listesi görünür. .NET servisi kapalıysa siparişler etkilenmez, sadece canlı bildirim gelmez.
+- **Proforma fatura (.NET QuestPDF):** Hesabım ve admin sipariş detayında "Fatura (PDF)" butonu. PDF, .NET servisinde marka fontları (Fraunces, Manrope — SIL OFL) ve logoyla üretilir; siparişi yalnızca sahibi veya admin indirebilir. Belge proforma niteliğindedir, e-Arşiv fatura yerine geçmez. QuestPDF Community lisansıyla kullanılır (yıllık geliri 1M USD altındaki işletmeler için ücretsiz).
 - **Yönetim paneli** (`/admin`, sadece `admin` rolündeki kullanıcılar): ürün CRUD, tüm siparişleri görüntüleme ve sipariş durumu güncelleme
 
 ### Admin girişi

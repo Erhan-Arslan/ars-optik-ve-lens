@@ -12,8 +12,12 @@ public sealed class ArsOptikDbContext(DbContextOptions<ArsOptikDbContext> option
 
     public DbSet<LensIndexRecord> LensIndexes => Set<LensIndexRecord>();
 
+    public DbSet<OrderRecord> Orders => Set<OrderRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.ConfigureOrders();
+
         modelBuilder.Entity<LensIndexRecord>(lensIndex =>
         {
             lensIndex.ToTable("lens_indexes");
