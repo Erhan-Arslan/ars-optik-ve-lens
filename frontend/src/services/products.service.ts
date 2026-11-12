@@ -22,7 +22,8 @@ export async function fetchProductBySlug(slug: string): Promise<Product> {
 export interface LensOptions {
   lensTypes: LensType[];
   lensCoatings: LensCoating[];
-  lensIndexes: LensIndex[];
+  /** Optional: missing from backends deployed before lens index support. */
+  lensIndexes?: LensIndex[];
 }
 
 export async function fetchLensOptions(): Promise<LensOptions> {

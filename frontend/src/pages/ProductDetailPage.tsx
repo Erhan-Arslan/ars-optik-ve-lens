@@ -51,10 +51,11 @@ export function ProductDetailPage() {
     fetchLensOptions().then(({ lensTypes, lensCoatings, lensIndexes }) => {
       setLensTypes(lensTypes);
       setLensCoatings(lensCoatings);
-      setLensIndexes(lensIndexes);
+      // `lensIndexes` is absent on backends deployed before lens index support.
+      setLensIndexes(lensIndexes ?? []);
       setSelectedLensType(lensTypes[0]);
       setSelectedCoating(lensCoatings[0]);
-      setSelectedLensIndex(lensIndexes[0]);
+      setSelectedLensIndex(lensIndexes?.[0]);
     });
   }, [slug]);
 
