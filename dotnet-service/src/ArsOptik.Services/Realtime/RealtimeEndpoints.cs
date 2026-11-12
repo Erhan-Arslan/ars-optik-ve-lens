@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using ArsOptik.Services.Notifications;
 using Microsoft.AspNetCore.SignalR;
 
 namespace ArsOptik.Services.Realtime;
@@ -31,12 +32,16 @@ public static class RealtimeEndpoints
         return app;
     }
 
-    /// <summary>Called by the NestJS backend; authenticated with the shared INTERNAL_API_KEY.</summary>
+    /// <summary>
+    /// Called by the NestJS backend; authenticated with the shared INTERNAL_API_KEY. Relays the event
+    /// to admins over SignalR and queues the customer e-mail.
+    /// </summary>
     private static async Task<IResult> PublishOrderEventAsync(
         HttpRequest request,
         OrderEvent orderEvent,
         IConfiguration configuration,
         IHubContext<AdminOrdersHub, IAdminOrdersClient> hub,
+        OrderEmailQueue emailQueue,
         ILogger<AdminOrdersHub> logger)
     {
         var expectedKey = configuration["INTERNAL_API_KEY"];
@@ -57,6 +62,11 @@ public static class RealtimeEndpoints
         }
 
         await hub.Clients.All.OrderEvent(orderEvent);
+        // The customer e-mail is sent in the background so NestJS is not kept waiting.
+        if (!emailQueue.TryEnqueue(orderEvent))
+        {
+            logger.LogWarning("E-mail queue full; no e-mail for {OrderNumber}", orderEvent.OrderNumber);
+        }
         logger.LogInformation("Order event {Type} for {OrderNumber} sent to admins", orderEvent.Type, orderEvent.OrderNumber);
         return TypedResults.Accepted((string?)null);
     }

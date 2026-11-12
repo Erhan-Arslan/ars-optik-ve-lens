@@ -4,6 +4,7 @@ using System.Text;
 using ArsOptik.Services.Auth;
 using ArsOptik.Services.Data;
 using ArsOptik.Services.Invoices;
+using ArsOptik.Services.Notifications;
 using ArsOptik.Services.Prescriptions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -34,8 +35,12 @@ public sealed class ServiceFactory : WebApplicationFactory<Program>
             services.Replace(ServiceDescriptor.Scoped<IUserDirectory>(_ => new StubUserDirectory([Customer, Admin, OtherCustomer])));
             services.Replace(ServiceDescriptor.Scoped<ILensIndexCatalog>(_ => new StubLensIndexCatalog()));
             services.Replace(ServiceDescriptor.Scoped<IInvoiceDataSource>(_ => new StubInvoiceDataSource()));
+            services.Replace(ServiceDescriptor.Singleton<IEmailSender>(Emails));
         });
     }
+
+    /// <summary>Captures the e-mails the background worker would send.</summary>
+    public RecordingEmailSender Emails { get; } = new();
 
     public HttpClient CreateClientWithToken(string token)
     {

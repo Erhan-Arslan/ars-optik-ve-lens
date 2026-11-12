@@ -29,7 +29,7 @@ export function OrderSuccessPage() {
       <h1 className="mt-6 font-display text-3xl text-ink-900">Siparişiniz Alındı</h1>
       <p className="mt-3 text-ink-500">
         Sipariş numaranız <span className="font-semibold text-ink-800">#{orderNumber}</span>. Sipariş
-        detaylarını e-posta adresinize gönderdik.
+        özetiniz ve proforma faturanız birkaç dakika içinde e-posta adresinize ulaşacak.
       </p>
       <Link to="/katalog" className={buttonVariants({ className: "mt-8" })}>
         Alışverişe Devam Et

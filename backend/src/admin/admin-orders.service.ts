@@ -44,8 +44,11 @@ export class AdminOrdersService {
       include: ADMIN_ORDER_INCLUDE,
     });
     const serialized = serializeOrder(updated);
-    // Other admins with the panel open see the new status without refreshing.
-    this.orderEvents.publish(buildOrderEvent('order.statusChanged', serialized, updated.user));
+    // Notify other admins and the customer (e-mail) only on a real change, so re-saving the same
+    // status never sends a duplicate "kargoya verildi" e-mail.
+    if (order.status !== updated.status) {
+      this.orderEvents.publish(buildOrderEvent('order.statusChanged', serialized, updated.user));
+    }
     return serialized;
   }
 }

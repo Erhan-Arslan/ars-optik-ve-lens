@@ -4,6 +4,7 @@ using System.Threading.RateLimiting;
 using ArsOptik.Services.Auth;
 using ArsOptik.Services.Data;
 using ArsOptik.Services.Invoices;
+using ArsOptik.Services.Notifications;
 using ArsOptik.Services.Prescriptions;
 using ArsOptik.Services.Realtime;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -53,6 +54,7 @@ builder.Services.AddNestJwtAuthentication();
 builder.Services.AddPrescriptionAnalysis();
 builder.Services.AddRealtime();
 builder.Services.AddInvoices();
+builder.Services.AddOrderEmails(builder.Configuration);
 
 var app = builder.Build();
 
