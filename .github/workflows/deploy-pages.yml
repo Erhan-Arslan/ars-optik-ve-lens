@@ -39,6 +39,7 @@ jobs:
         env:
           BASE_PATH: /${{ github.event.repository.name }}/
           VITE_API_URL: ${{ vars.VITE_API_URL }}
+          VITE_DOTNET_API_URL: ${{ vars.VITE_DOTNET_API_URL }}
 
       # GitHub Pages has no SPA rewrites; serving index.html as 404 lets client-side routes load on refresh.
       - run: cp dist/index.html dist/404.html

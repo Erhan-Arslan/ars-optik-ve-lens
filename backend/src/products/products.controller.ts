@@ -18,7 +18,7 @@ export class ProductsController {
 
   @Public()
   @Get('meta/lens-options')
-  @ApiOperation({ summary: 'Lens tipi ve kaplama seçeneklerini döner' })
+  @ApiOperation({ summary: 'Lens tipi, kaplama ve cam inceliği seçeneklerini döner' })
   getLensOptions() {
     return this.productsService.getLensOptions();
   }

@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { fetchAdminOrders, updateAdminOrderStatus } from "@/services/admin.service";
-import { formatPrice } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { OrderItemsDetail } from "@/components/admin/OrderItemsDetail";
 import type { AdminOrder, OrderStatus } from "@/types";
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
@@ -14,6 +16,7 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
 export function AdminOrdersPage() {
   const [orders, setOrders] = useState<AdminOrder[] | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   function load() {
     fetchAdminOrders()
@@ -58,35 +61,63 @@ export function AdminOrdersPage() {
                 <th className="px-4 py-3 font-medium">Tarih</th>
                 <th className="px-4 py-3 font-medium">Tutar</th>
                 <th className="px-4 py-3 font-medium">Durum</th>
+                <th className="px-4 py-3 font-medium">
+                  <span className="sr-only">Detay</span>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-ink-100">
               {orders.map((order) => (
-                <tr key={order.id}>
-                  <td className="px-4 py-3 font-medium text-ink-900">#{order.orderNumber}</td>
-                  <td className="px-4 py-3 text-ink-600">
-                    {order.user.firstName} {order.user.lastName}
-                    <span className="block text-xs text-ink-400">{order.user.email}</span>
-                  </td>
-                  <td className="px-4 py-3 text-ink-600">
-                    {new Date(order.createdAt).toLocaleDateString("tr-TR")}
-                  </td>
-                  <td className="px-4 py-3 text-ink-900">{formatPrice(order.total)}</td>
-                  <td className="px-4 py-3">
-                    <select
-                      value={order.status}
-                      disabled={updatingId === order.id}
-                      onChange={(e) => handleStatusChange(order.id, e.target.value as OrderStatus)}
-                      className="rounded-lg border border-ink-200 px-2.5 py-1.5 text-xs text-ink-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500"
-                    >
-                      {Object.entries(STATUS_LABELS).map(([value, label]) => (
-                        <option key={value} value={value}>
-                          {label}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                </tr>
+                <Fragment key={order.id}>
+                  <tr>
+                    <td className="px-4 py-3 font-medium text-ink-900">#{order.orderNumber}</td>
+                    <td className="px-4 py-3 text-ink-600">
+                      {order.user.firstName} {order.user.lastName}
+                      <span className="block text-xs text-ink-400">{order.user.email}</span>
+                    </td>
+                    <td className="px-4 py-3 text-ink-600">
+                      {new Date(order.createdAt).toLocaleDateString("tr-TR")}
+                    </td>
+                    <td className="px-4 py-3 text-ink-900">{formatPrice(order.total)}</td>
+                    <td className="px-4 py-3">
+                      <select
+                        value={order.status}
+                        disabled={updatingId === order.id}
+                        onChange={(e) => handleStatusChange(order.id, e.target.value as OrderStatus)}
+                        className="rounded-lg border border-ink-200 px-2.5 py-1.5 text-xs text-ink-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500"
+                      >
+                        {Object.entries(STATUS_LABELS).map(([value, label]) => (
+                          <option key={value} value={value}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        type="button"
+                        onClick={() => setExpandedId((id) => (id === order.id ? null : order.id))}
+                        aria-expanded={expandedId === order.id}
+                        aria-controls={`order-detail-${order.id}`}
+                        className="inline-flex items-center gap-1 rounded-full border border-ink-200 px-3 py-1.5 text-xs font-medium text-ink-600 transition-[border-color,color,transform] duration-150 hover:border-bronze-400 hover:text-bronze-600 active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500"
+                      >
+                        {order.items.length} ürün
+                        <ChevronDown
+                          size={14}
+                          aria-hidden="true"
+                          className={cn("transition-transform duration-200", expandedId === order.id && "rotate-180")}
+                        />
+                      </button>
+                    </td>
+                  </tr>
+                  {expandedId === order.id && (
+                    <tr id={`order-detail-${order.id}`}>
+                      <td colSpan={6} className="bg-ink-50/60 px-4 py-4">
+                        <OrderItemsDetail items={order.items} />
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
               ))}
             </tbody>
           </table>

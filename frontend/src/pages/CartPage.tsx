@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
-import { useCartStore, cartTotal } from "@/store/cart";
+import { useCartStore, cartTotal, cartItemUnitPrice } from "@/store/cart";
 import { formatPrice } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/Button";
 import { FrameIllustration } from "@/components/product/FrameIllustration";
@@ -53,6 +53,7 @@ export function CartPage() {
                         {item.selectedColor}
                         {item.lensType && item.lensType.priceModifier >= 0 ? ` · ${item.lensType.name}` : ""}
                         {item.lensCoating ? ` · ${item.lensCoating.name}` : ""}
+                        {item.lensIndex ? ` · ${item.lensIndex.name}` : ""}
                       </p>
                     </div>
                     <button
@@ -86,7 +87,7 @@ export function CartPage() {
                     </button>
                   </div>
                   <span className="font-display text-base text-ink-900">
-                    {formatPrice((item.product.price + (item.lensType?.priceModifier ?? 0) + (item.lensCoating?.priceModifier ?? 0)) * item.quantity)}
+                    {formatPrice(cartItemUnitPrice(item) * item.quantity)}
                   </span>
                 </div>
               </div>

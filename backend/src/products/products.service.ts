@@ -63,14 +63,20 @@ export class ProductsService {
   }
 
   async getLensOptions() {
-    const [lensTypes, lensCoatings] = await Promise.all([
+    const [lensTypes, lensCoatings, lensIndexes] = await Promise.all([
       this.prisma.lensType.findMany(),
       this.prisma.lensCoating.findMany(),
+      this.prisma.lensIndex.findMany({ orderBy: { sortOrder: 'asc' } }),
     ]);
 
     return {
       lensTypes: lensTypes.map((lt) => ({ ...lt, priceModifier: Number(lt.priceModifier) })),
       lensCoatings: lensCoatings.map((lc) => ({ ...lc, priceModifier: Number(lc.priceModifier) })),
+      lensIndexes: lensIndexes.map((li) => ({
+        ...li,
+        refractiveIndex: Number(li.refractiveIndex),
+        priceModifier: Number(li.priceModifier),
+      })),
     };
   }
 }

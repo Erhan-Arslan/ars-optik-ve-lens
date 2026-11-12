@@ -161,6 +161,21 @@ model LensCoating {
   @@map("lens_coatings")
 }
 
+/// Lens material by refractive index (1.50 / 1.60 / 1.67 / 1.74): higher index, thinner lens.
+/// The .NET service reads refractiveIndex to estimate thickness and recommend one.
+model LensIndex {
+  id              String      @id @default(cuid())
+  code            String      @unique
+  name            String
+  description     String
+  refractiveIndex Decimal     @db.Decimal(3, 2)
+  priceModifier   Decimal     @db.Decimal(10, 2)
+  sortOrder       Int         @default(0)
+  orderItems      OrderItem[]
+
+  @@map("lens_indexes")
+}
+
 model Order {
   id          String      @id @default(cuid())
   orderNumber String      @unique
@@ -195,8 +210,15 @@ model OrderItem {
   lensType          LensType?    @relation(fields: [lensTypeId], references: [id])
   lensCoatingId     String?
   lensCoating       LensCoating? @relation(fields: [lensCoatingId], references: [id])
+  lensIndexId       String?
+  lensIndex         LensIndex?   @relation(fields: [lensIndexId], references: [id])
   prescriptionOdSphere String?
   prescriptionOsSphere String?
+  prescriptionOdCylinder Decimal? @db.Decimal(4, 2)
+  prescriptionOsCylinder Decimal? @db.Decimal(4, 2)
+  prescriptionOdAxis     Int?
+  prescriptionOsAxis     Int?
+  prescriptionPupillaryDistance Decimal? @db.Decimal(4, 1)
   prescriptionNotes    String?
 
   @@index([orderId])

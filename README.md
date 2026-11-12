@@ -21,6 +21,7 @@ docker-compose.yml   postgres, redis, backend, dotnet-service, frontend
 
 - Ürün kataloğu: filtreleme, sıralama, arama (`/katalog?arama=...`)
 - Ürün detayı: lens tipi/kaplama seçimi, reçete bilgisi, favoriye ekleme
+- **Reçete analizi ve cam inceliği önerisi (.NET):** Reçete (SPH/CYL/AKS/PD) .NET servisinde doğrulanır ve eksi silindir formuna çevrilir. Her cam inceliği (1.50 / 1.60 / 1.67 / 1.74) için tahmini kalınlık hesaplanır, en uygun incelik önerilir. Fiyatı NestJS sipariş sırasında sunucuda hesaplar; .NET servisi kapalıysa incelik elle seçilip siparişe devam edilebilir. Reçetenin tamamı siparişe kaydedilir ve admin sipariş detayında görünür.
 - Sepet + Ödeme (mock ödeme sağlayıcısı, kayıtlı adresten hızlı doldurma)
 - Kullanıcı hesabı: sipariş geçmişi, adres defteri (varsayılan adres desteğiyle), favorilerim
 - **Yönetim paneli** (`/admin`, sadece `admin` rolündeki kullanıcılar): ürün CRUD, tüm siparişleri görüntüleme ve sipariş durumu güncelleme

@@ -10,8 +10,21 @@ public sealed class ArsOptikDbContext(DbContextOptions<ArsOptikDbContext> option
 {
     public DbSet<UserRecord> Users => Set<UserRecord>();
 
+    public DbSet<LensIndexRecord> LensIndexes => Set<LensIndexRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<LensIndexRecord>(lensIndex =>
+        {
+            lensIndex.ToTable("lens_indexes");
+            lensIndex.HasKey(li => li.Id);
+            lensIndex.Property(li => li.Id).HasColumnName("id");
+            lensIndex.Property(li => li.Code).HasColumnName("code");
+            lensIndex.Property(li => li.Name).HasColumnName("name");
+            lensIndex.Property(li => li.RefractiveIndex).HasColumnName("refractiveIndex");
+            lensIndex.Property(li => li.SortOrder).HasColumnName("sortOrder");
+        });
+
         modelBuilder.Entity<UserRecord>(user =>
         {
             user.ToTable("users");
@@ -32,6 +45,15 @@ public sealed class UserRecord
     public required string FirstName { get; init; }
     public required string LastName { get; init; }
     public required UserRole Role { get; init; }
+}
+
+public sealed class LensIndexRecord
+{
+    public required string Id { get; init; }
+    public required string Code { get; init; }
+    public required string Name { get; init; }
+    public required decimal RefractiveIndex { get; init; }
+    public required int SortOrder { get; init; }
 }
 
 /// <summary>Mirrors the Prisma <c>Role</c> Postgres enum (<c>'USER' | 'ADMIN'</c>).</summary>

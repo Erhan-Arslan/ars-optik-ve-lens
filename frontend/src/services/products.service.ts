@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import type { LensCoating, LensType, Product } from "@/types";
+import type { LensCoating, LensIndex, LensType, Product } from "@/types";
 
 export interface ProductQuery {
   category?: "cerceve" | "gunes-gozlugu" | "lens";
@@ -19,7 +19,13 @@ export async function fetchProductBySlug(slug: string): Promise<Product> {
   return data;
 }
 
-export async function fetchLensOptions(): Promise<{ lensTypes: LensType[]; lensCoatings: LensCoating[] }> {
-  const { data } = await api.get("/products/meta/lens-options");
+export interface LensOptions {
+  lensTypes: LensType[];
+  lensCoatings: LensCoating[];
+  lensIndexes: LensIndex[];
+}
+
+export async function fetchLensOptions(): Promise<LensOptions> {
+  const { data } = await api.get<LensOptions>("/products/meta/lens-options");
   return data;
 }

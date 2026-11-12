@@ -19,6 +19,13 @@ const lensCoatings = [
   { code: 'yansima-onleyici', name: 'Yansıma Önleyici', description: 'Parlama ve yansımaları azaltır.', priceModifier: 350 },
 ];
 
+const lensIndexes = [
+  { code: '1.50', name: 'Standart (1.50)', description: 'Düşük numaralar için ekonomik, net görüşlü cam.', refractiveIndex: 1.5, priceModifier: 0, sortOrder: 1 },
+  { code: '1.60', name: 'İnceltilmiş (1.60)', description: 'Standart cama göre yaklaşık %20 daha ince ve hafif.', refractiveIndex: 1.6, priceModifier: 650, sortOrder: 2 },
+  { code: '1.67', name: 'Ekstra İnce (1.67)', description: 'Orta-yüksek numaralarda belirgin incelik.', refractiveIndex: 1.67, priceModifier: 1400, sortOrder: 3 },
+  { code: '1.74', name: 'Ultra İnce (1.74)', description: 'Yüksek numaralar için en ince ve en hafif seçenek.', refractiveIndex: 1.74, priceModifier: 2600, sortOrder: 4 },
+];
+
 const products = [
   {
     slug: 'leo-yuvarlak-cerceve', name: 'Leo Yuvarlak Çerçeve', brand: 'ARS Optik',
@@ -127,6 +134,9 @@ async function main() {
   for (const lc of lensCoatings) {
     await prisma.lensCoating.upsert({ where: { code: lc.code }, update: lc, create: lc });
   }
+  for (const li of lensIndexes) {
+    await prisma.lensIndex.upsert({ where: { code: li.code }, update: li, create: li });
+  }
 
   for (const { colors, ...product } of products) {
     await prisma.product.upsert({
@@ -157,7 +167,7 @@ async function main() {
     },
   });
 
-  console.log(`Seed tamamlandı: ${products.length} ürün, ${lensTypes.length} lens tipi, ${lensCoatings.length} kaplama.`);
+  console.log(`Seed tamamlandı: ${products.length} ürün, ${lensTypes.length} lens tipi, ${lensCoatings.length} kaplama, ${lensIndexes.length} cam inceliği.`);
   console.log(
     envPassword
       ? `Admin girişi -> e-posta: ${adminEmail} / şifre: ADMIN_PASSWORD ortam değişkeni`

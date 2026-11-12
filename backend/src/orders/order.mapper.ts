@@ -29,6 +29,17 @@ export function serializeOrder(order: {
     subtotal: Number(order.subtotal),
     shipping: Number(order.shipping),
     total: Number(order.total),
-    items: order.items.map((item) => ({ ...item, unitPrice: Number(item.unitPrice) })),
+    items: order.items.map((item) => ({
+      ...item,
+      unitPrice: Number(item.unitPrice),
+      prescriptionOdCylinder: toNumberOrNull(item.prescriptionOdCylinder),
+      prescriptionOsCylinder: toNumberOrNull(item.prescriptionOsCylinder),
+      prescriptionPupillaryDistance: toNumberOrNull(item.prescriptionPupillaryDistance),
+    })),
   };
+}
+
+// Prisma returns DECIMAL columns as Decimal objects, which JSON-serialize as strings.
+function toNumberOrNull(value: unknown): number | null {
+  return value === null || value === undefined ? null : Number(value);
 }

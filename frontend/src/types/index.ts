@@ -18,6 +18,16 @@ export interface LensCoating {
   priceModifier: number;
 }
 
+/** Lens material by refractive index; higher index means a thinner lens. */
+export interface LensIndex {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+  refractiveIndex: number;
+  priceModifier: number;
+}
+
 export interface Product {
   id: string;
   slug: string;
@@ -57,6 +67,7 @@ export interface CartItem {
   selectedColor: string;
   lensType?: LensType;
   lensCoating?: LensCoating;
+  lensIndex?: LensIndex;
   prescription?: PrescriptionInfo;
 }
 
@@ -93,9 +104,21 @@ export interface OrderItemResponse {
   selectedColor: string;
   lensTypeId?: string;
   lensCoatingId?: string;
-  prescriptionOdSphere?: string;
-  prescriptionOsSphere?: string;
-  prescriptionNotes?: string;
+  lensIndexId?: string | null;
+  prescriptionOdSphere?: string | null;
+  prescriptionOsSphere?: string | null;
+  prescriptionOdCylinder?: number | null;
+  prescriptionOsCylinder?: number | null;
+  prescriptionOdAxis?: number | null;
+  prescriptionOsAxis?: number | null;
+  prescriptionPupillaryDistance?: number | null;
+  prescriptionNotes?: string | null;
+}
+
+export interface AdminOrderItem extends OrderItemResponse {
+  lensType: { name: string } | null;
+  lensCoating: { name: string } | null;
+  lensIndex: { name: string; code: string } | null;
 }
 
 export interface Order {
@@ -110,6 +133,57 @@ export interface Order {
   address: Address;
 }
 
-export interface AdminOrder extends Order {
+export interface AdminOrder extends Omit<Order, "items"> {
+  items: AdminOrderItem[];
   user: { id: string; email: string; firstName: string; lastName: string };
+}
+
+/* ---- .NET prescription analysis (POST /prescriptions/analyze) ---- */
+
+export interface EyePrescriptionInput {
+  sphere: number;
+  cylinder?: number;
+  axis?: number;
+}
+
+export interface PrescriptionAnalysisInput {
+  rightEye: EyePrescriptionInput;
+  leftEye: EyePrescriptionInput;
+  pupillaryDistance?: number;
+}
+
+export interface EyeAnalysis {
+  sphere: number;
+  cylinder: number;
+  axis: number | null;
+  sphericalEquivalent: number;
+  strongestMeridianPower: number;
+  wasTransposed: boolean;
+}
+
+export interface LensIndexEstimate {
+  code: string;
+  name: string;
+  refractiveIndex: number;
+  rightEyeThicknessMm: number;
+  leftEyeThicknessMm: number;
+  maxThicknessMm: number;
+  isRecommended: boolean;
+}
+
+export interface PrescriptionAdvisory {
+  level: "info" | "warning";
+  code: string;
+  message: string;
+}
+
+export interface PrescriptionAnalysis {
+  rightEye: EyeAnalysis;
+  leftEye: EyeAnalysis;
+  pupillaryDistance: number;
+  pupillaryDistanceAssumed: boolean;
+  lensIndexes: LensIndexEstimate[];
+  recommendedLensIndexCode: string;
+  recommendationReason: string;
+  advisories: PrescriptionAdvisory[];
 }

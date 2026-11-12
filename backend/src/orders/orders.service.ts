@@ -9,6 +9,13 @@ import type { CreateOrderDto } from './dto/create-order.dto.js';
 const FREE_SHIPPING_THRESHOLD = 750;
 const SHIPPING_FEE = 60;
 
+/** A cylinder power is meaningless without its axis; the lab cannot cut the lens. */
+function assertAxisForCylinder(cylinder: number | undefined, axis: number | undefined, eye: string) {
+  if (cylinder !== undefined && cylinder !== 0 && axis === undefined) {
+    throw new BadRequestException(`${eye} için silindir (CYL) girildiğinde aks (AKS) da girilmelidir.`);
+  }
+}
+
 @Injectable()
 export class OrdersService {
   constructor(
@@ -25,16 +32,20 @@ export class OrdersService {
     const lensCoatingIds = [
       ...new Set(dto.items.map((i) => i.lensCoatingId).filter(Boolean)),
     ] as string[];
-    const [lensTypes, lensCoatings] = await Promise.all([
+    const [lensTypes, lensCoatings, lensIndexes] = await Promise.all([
       lensTypeIds.length
         ? this.prisma.lensType.findMany({ where: { id: { in: lensTypeIds } } })
         : Promise.resolve([]),
       lensCoatingIds.length
         ? this.prisma.lensCoating.findMany({ where: { id: { in: lensCoatingIds } } })
         : Promise.resolve([]),
+      this.prisma.lensIndex.findMany({ orderBy: { sortOrder: 'asc' } }),
     ]);
     const lensTypeById = new Map(lensTypes.map((lt) => [lt.id, lt]));
     const lensCoatingById = new Map(lensCoatings.map((lc) => [lc.id, lc]));
+    const lensIndexById = new Map(lensIndexes.map((li) => [li.id, li]));
+    // Orders from clients that predate index selection get the standard (cheapest) lens.
+    const defaultLensIndex = lensIndexes[0];
 
     const orderItemsData: Prisma.OrderItemCreateManyOrderInput[] = [];
     let subtotal = 0;
@@ -49,9 +60,17 @@ export class OrdersService {
       const lensType = item.lensTypeId ? lensTypeById.get(item.lensTypeId) : undefined;
       const lensCoating = item.lensCoatingId ? lensCoatingById.get(item.lensCoatingId) : undefined;
 
+      const lensIndex = item.lensIndexId ? lensIndexById.get(item.lensIndexId) : defaultLensIndex;
       if (product.requiresPrescription) {
+        if (item.lensIndexId && !lensIndex) {
+          throw new BadRequestException(`Cam inceliği bulunamadı: ${item.lensIndexId}`);
+        }
+        assertAxisForCylinder(item.prescriptionOdCylinder, item.prescriptionOdAxis, 'Sağ göz');
+        assertAxisForCylinder(item.prescriptionOsCylinder, item.prescriptionOsAxis, 'Sol göz');
+
         if (lensType) unitPrice += Number(lensType.priceModifier);
         if (lensCoating) unitPrice += Number(lensCoating.priceModifier);
+        if (lensIndex) unitPrice += Number(lensIndex.priceModifier);
       }
 
       subtotal += unitPrice * item.quantity;
@@ -64,9 +83,17 @@ export class OrdersService {
         selectedColor: item.selectedColor,
         lensTypeId: product.requiresPrescription ? lensType?.id : undefined,
         lensCoatingId: product.requiresPrescription ? lensCoating?.id : undefined,
-        prescriptionOdSphere: product.requiresPrescription ? item.prescriptionOdSphere : undefined,
-        prescriptionOsSphere: product.requiresPrescription ? item.prescriptionOsSphere : undefined,
-        prescriptionNotes: product.requiresPrescription ? item.prescriptionNotes : undefined,
+        ...(product.requiresPrescription && {
+          lensIndexId: lensIndex?.id,
+          prescriptionOdSphere: item.prescriptionOdSphere,
+          prescriptionOsSphere: item.prescriptionOsSphere,
+          prescriptionOdCylinder: item.prescriptionOdCylinder,
+          prescriptionOsCylinder: item.prescriptionOsCylinder,
+          prescriptionOdAxis: item.prescriptionOdAxis,
+          prescriptionOsAxis: item.prescriptionOsAxis,
+          prescriptionPupillaryDistance: item.prescriptionPupillaryDistance,
+          prescriptionNotes: item.prescriptionNotes,
+        }),
       });
     }
 

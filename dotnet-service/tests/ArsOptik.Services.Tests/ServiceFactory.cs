@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using ArsOptik.Services.Auth;
 using ArsOptik.Services.Data;
+using ArsOptik.Services.Prescriptions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,7 +26,10 @@ public sealed class ServiceFactory : WebApplicationFactory<Program>
         builder.UseSetting("JWT_ACCESS_SECRET", Secret);
         builder.UseSetting("DATABASE_URL", "postgresql://unused:unused@localhost/unused");
         builder.ConfigureServices(services =>
-            services.Replace(ServiceDescriptor.Scoped<IUserDirectory>(_ => new StubUserDirectory([Customer, Admin]))));
+        {
+            services.Replace(ServiceDescriptor.Scoped<IUserDirectory>(_ => new StubUserDirectory([Customer, Admin])));
+            services.Replace(ServiceDescriptor.Scoped<ILensIndexCatalog>(_ => new StubLensIndexCatalog()));
+        });
     }
 
     public HttpClient CreateClientWithToken(string token)
@@ -49,6 +53,19 @@ public sealed class ServiceFactory : WebApplicationFactory<Program>
             SigningCredentials = new SigningCredentials(
                 new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)), SecurityAlgorithms.HmacSha256),
         });
+    }
+
+    /// <summary>Same rows as the NestJS seed.</summary>
+    private sealed class StubLensIndexCatalog : ILensIndexCatalog
+    {
+        public Task<IReadOnlyList<LensIndexOption>> GetAllAsync(CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyList<LensIndexOption>>(
+            [
+                new("1.50", "Standart (1.50)", 1.50m),
+                new("1.60", "İnceltilmiş (1.60)", 1.60m),
+                new("1.67", "Ekstra İnce (1.67)", 1.67m),
+                new("1.74", "Ultra İnce (1.74)", 1.74m),
+            ]);
     }
 
     private sealed class StubUserDirectory(IReadOnlyList<AppUser> users) : IUserDirectory

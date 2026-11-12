@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Check, CreditCard, Lock, MapPin, Plus } from "lucide-react";
-import { useCartStore, cartTotal } from "@/store/cart";
+import { useCartStore, cartTotal, cartItemUnitPrice } from "@/store/cart";
 import { useAuthStore } from "@/store/auth";
 import { formatPrice, cn } from "@/lib/utils";
 import { extractErrorMessage } from "@/lib/api";
@@ -222,7 +222,7 @@ export function CheckoutPage() {
                   {item.product.name} × {item.quantity}
                 </span>
                 <span className="flex-none">
-                  {formatPrice((item.product.price + (item.lensType?.priceModifier ?? 0) + (item.lensCoating?.priceModifier ?? 0)) * item.quantity)}
+                  {formatPrice(cartItemUnitPrice(item) * item.quantity)}
                 </span>
               </li>
             ))}

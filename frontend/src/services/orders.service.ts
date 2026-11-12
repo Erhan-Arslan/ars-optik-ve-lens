@@ -1,4 +1,5 @@
 import { api } from "@/lib/api";
+import { prescriptionNumbers } from "@/lib/prescription";
 import type { Address, CartItem, Order } from "@/types";
 
 export interface CheckoutCard {
@@ -25,16 +26,25 @@ export async function createOrder(input: {
   const payload = {
     address: input.address,
     card: input.card,
-    items: input.items.map((item) => ({
-      productId: item.product.id,
-      quantity: item.quantity,
-      selectedColor: item.selectedColor,
-      lensTypeId: item.lensType?.id,
-      lensCoatingId: item.lensCoating?.id,
-      prescriptionOdSphere: item.prescription?.odSphere,
-      prescriptionOsSphere: item.prescription?.osSphere,
-      prescriptionNotes: item.prescription?.notes,
-    })),
+    items: input.items.map((item) => {
+      const rx = prescriptionNumbers(item.prescription);
+      return {
+        productId: item.product.id,
+        quantity: item.quantity,
+        selectedColor: item.selectedColor,
+        lensTypeId: item.lensType?.id,
+        lensCoatingId: item.lensCoating?.id,
+        lensIndexId: item.lensIndex?.id,
+        prescriptionOdSphere: item.prescription?.odSphere || undefined,
+        prescriptionOsSphere: item.prescription?.osSphere || undefined,
+        prescriptionOdCylinder: rx.odCylinder,
+        prescriptionOsCylinder: rx.osCylinder,
+        prescriptionOdAxis: rx.odAxis,
+        prescriptionOsAxis: rx.osAxis,
+        prescriptionPupillaryDistance: rx.pupillaryDistance,
+        prescriptionNotes: item.prescription?.notes,
+      };
+    }),
   };
   const { data } = await api.post<Order>("/orders", payload);
   return data;

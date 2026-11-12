@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Check, ChevronRight, Heart, Minus, Plus, ShieldCheck, Truck, Upload } from "lucide-react";
+import { Check, ChevronRight, Heart, Minus, Plus, ShieldCheck, Truck } from "lucide-react";
 import { fetchLensOptions, fetchProductBySlug } from "@/services/products.service";
 import { formatPrice, cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
@@ -9,10 +9,15 @@ import { StarRating } from "@/components/ui/StarRating";
 import { Badge } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { FrameIllustration } from "@/components/product/FrameIllustration";
-import { useCartStore } from "@/store/cart";
+import { PrescriptionForm } from "@/components/product/PrescriptionForm";
+import { LensIndexSelector } from "@/components/product/LensIndexSelector";
+import { PrescriptionAdvice } from "@/components/product/PrescriptionAdvice";
+import { usePrescriptionAnalysis } from "@/hooks/usePrescriptionAnalysis";
+import { localPrescriptionErrors } from "@/lib/prescription";
+import { cartItemUnitPrice, useCartStore } from "@/store/cart";
 import { useFavoritesStore } from "@/store/favorites";
 import { useAuthStore } from "@/store/auth";
-import type { LensCoating, LensType, PrescriptionInfo, Product } from "@/types";
+import type { LensCoating, LensIndex, LensType, PrescriptionInfo, Product } from "@/types";
 
 export function ProductDetailPage() {
   const { slug } = useParams();
@@ -25,12 +30,15 @@ export function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null | undefined>(undefined);
   const [lensTypes, setLensTypes] = useState<LensType[]>([]);
   const [lensCoatings, setLensCoatings] = useState<LensCoating[]>([]);
+  const [lensIndexes, setLensIndexes] = useState<LensIndex[]>([]);
   const [selectedColor, setSelectedColor] = useState<Product["colors"][number]>();
   const [selectedLensType, setSelectedLensType] = useState<LensType>();
   const [selectedCoating, setSelectedCoating] = useState<LensCoating>();
+  const [selectedLensIndex, setSelectedLensIndex] = useState<LensIndex>();
   const [quantity, setQuantity] = useState(1);
   const [prescription, setPrescription] = useState<PrescriptionInfo>({ odSphere: "", osSphere: "" });
   const [added, setAdded] = useState(false);
+  const analysis = usePrescriptionAnalysis(prescription, Boolean(product?.requiresPrescription));
 
   useEffect(() => {
     if (!slug) return;
@@ -40,11 +48,13 @@ export function ProductDetailPage() {
         setSelectedColor(p.colors[0]);
       })
       .catch(() => setProduct(null));
-    fetchLensOptions().then(({ lensTypes, lensCoatings }) => {
+    fetchLensOptions().then(({ lensTypes, lensCoatings, lensIndexes }) => {
       setLensTypes(lensTypes);
       setLensCoatings(lensCoatings);
+      setLensIndexes(lensIndexes);
       setSelectedLensType(lensTypes[0]);
       setSelectedCoating(lensCoatings[0]);
+      setSelectedLensIndex(lensIndexes[0]);
     });
   }, [slug]);
 
@@ -68,18 +78,25 @@ export function ProductDetailPage() {
     );
   }
 
-  const lensSurcharge = (selectedLensType?.priceModifier ?? 0) + (selectedCoating?.priceModifier ?? 0);
-  const unitPrice = product.price + (product.requiresPrescription ? lensSurcharge : 0);
+  const unitPrice = product.requiresPrescription
+    ? cartItemUnitPrice({ product, lensType: selectedLensType, lensCoating: selectedCoating, lensIndex: selectedLensIndex })
+    : product.price;
   const totalPrice = unitPrice * quantity;
 
+  const prescriptionBlocked = product.requiresPrescription && Object.keys(localPrescriptionErrors(prescription)).length > 0;
+  const analysisResult =
+    analysis.status === "ready" ? analysis.analysis : analysis.status === "loading" ? analysis.previous : undefined;
+  const recommendedLensIndex = lensIndexes.find((li) => li.code === analysisResult?.recommendedLensIndexCode);
+
   function handleAddToCart() {
-    if (!product || !selectedColor) return;
+    if (!product || !selectedColor || prescriptionBlocked) return;
     addItem({
       product,
       selectedColor: selectedColor.name,
       quantity,
       lensType: product.requiresPrescription ? selectedLensType : undefined,
       lensCoating: product.requiresPrescription ? selectedCoating : undefined,
+      lensIndex: product.requiresPrescription ? selectedLensIndex : undefined,
       prescription: product.requiresPrescription ? prescription : undefined,
     });
     setAdded(true);
@@ -223,36 +240,32 @@ export function ProductDetailPage() {
               </div>
 
               {/* Prescription */}
-              <div className="mt-6 rounded-xl border border-ink-200 p-4">
-                <h3 className="mb-3 text-sm font-medium text-ink-900">Reçete Bilgisi</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <label className="text-xs text-ink-500">
-                    Sağ Göz (OD) Sferik
-                    <input
-                      type="text"
-                      placeholder="ör. -1.25"
-                      value={prescription.odSphere}
-                      onChange={(e) => setPrescription({ ...prescription, odSphere: e.target.value })}
-                      className="mt-1 w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500"
-                    />
-                  </label>
-                  <label className="text-xs text-ink-500">
-                    Sol Göz (OS) Sferik
-                    <input
-                      type="text"
-                      placeholder="ör. -1.50"
-                      value={prescription.osSphere}
-                      onChange={(e) => setPrescription({ ...prescription, osSphere: e.target.value })}
-                      className="mt-1 w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500"
-                    />
-                  </label>
+              <div className="mt-6">
+                <PrescriptionForm
+                  value={prescription}
+                  onChange={setPrescription}
+                  fieldErrors={analysis.status === "invalid" ? analysis.fieldErrors : undefined}
+                />
+              </div>
+
+              {/* Lens index — recommended by the .NET prescription analysis */}
+              <div className="mt-6">
+                <h3 className="mb-3 text-sm font-medium text-ink-900">Cam İnceliği</h3>
+                <PrescriptionAdvice
+                  state={analysis}
+                  recommended={recommendedLensIndex}
+                  isRecommendedSelected={recommendedLensIndex?.id === selectedLensIndex?.id}
+                  onApply={() => setSelectedLensIndex(recommendedLensIndex)}
+                />
+                <div className="mt-3">
+                  <LensIndexSelector
+                    lensIndexes={lensIndexes}
+                    selectedId={selectedLensIndex?.id}
+                    onSelect={setSelectedLensIndex}
+                    estimates={analysisResult?.lensIndexes}
+                    isStale={analysis.status === "loading"}
+                  />
                 </div>
-                <button
-                  type="button"
-                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-ink-300 py-2.5 text-xs font-medium text-ink-500 transition-colors duration-150 hover:border-gold-500 hover:text-bronze-600"
-                >
-                  <Upload size={14} /> Reçete Dosyası Yükle (opsiyonel)
-                </button>
               </div>
             </>
           )}
@@ -278,7 +291,7 @@ export function ProductDetailPage() {
                 <Plus size={15} />
               </button>
             </div>
-            <Button size="lg" className="flex-1" onClick={handleAddToCart}>
+            <Button size="lg" className="flex-1" onClick={handleAddToCart} disabled={prescriptionBlocked}>
               {added ? (
                 <>
                   <Check size={18} /> Sepete Eklendi
