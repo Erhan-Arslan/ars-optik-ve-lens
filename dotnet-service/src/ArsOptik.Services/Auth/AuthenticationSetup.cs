@@ -53,7 +53,11 @@ public static class AuthenticationSetup
                     NameClaimType = AppClaims.Email,
                     RoleClaimType = AppClaims.Role,
                 };
-                options.Events = new JwtBearerEvents { OnTokenValidated = AttachUserAsync };
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = ReadHubTokenFromQuery,
+                    OnTokenValidated = AttachUserAsync,
+                };
             })
             .ValidateOnStart();
 
@@ -62,6 +66,19 @@ public static class AuthenticationSetup
             .AddPolicy(AdminPolicy, policy => policy.RequireRole(AppClaims.AdminRole));
 
         return services;
+    }
+
+    // Browsers cannot set headers on WebSocket/SSE requests, so the SignalR client sends the token
+    // as ?access_token=. Accept it only on hub routes to keep tokens out of other URLs and logs.
+    private static Task ReadHubTokenFromQuery(MessageReceivedContext context)
+    {
+        if (context.HttpContext.Request.Path.StartsWithSegments("/hubs")
+            && context.Request.Query["access_token"].ToString() is { Length: > 0 } token)
+        {
+            context.Token = token;
+        }
+
+        return Task.CompletedTask;
     }
 
     // Same as the NestJS JwtStrategy: the role is not in the token, so it is read from the users

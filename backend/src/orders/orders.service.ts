@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { PAYMENT_PROVIDER, type PaymentProvider } from '../payments/payment-provider.interface.js';
 import { OrderStatus, PaymentStatus } from '../generated/prisma/enums.js';
 import type { Prisma } from '../generated/prisma/client.js';
+import { OrderEventsPublisher, buildOrderEvent } from '../order-events/order-events.publisher.js';
 import { serializeOrder } from './order.mapper.js';
 import type { CreateOrderDto } from './dto/create-order.dto.js';
 
@@ -21,6 +22,7 @@ export class OrdersService {
   constructor(
     private readonly prisma: PrismaService,
     @Inject(PAYMENT_PROVIDER) private readonly paymentProvider: PaymentProvider,
+    private readonly orderEvents: OrderEventsPublisher,
   ) {}
 
   async create(userId: string, dto: CreateOrderDto) {
@@ -147,7 +149,24 @@ export class OrdersService {
       throw new BadRequestException('Ödeme reddedildi. Lütfen kart bilgilerinizi kontrol edin.');
     }
 
-    return serializeOrder(updated);
+    const serialized = serializeOrder(updated);
+    void this.announceNewOrder(serialized, userId);
+    return serialized;
+  }
+
+  /** Tells admins about a paid order; runs after the response and never fails the checkout. */
+  private async announceNewOrder(order: Parameters<typeof buildOrderEvent>[1], userId: string) {
+    try {
+      const customer = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { firstName: true, lastName: true },
+      });
+      if (customer) {
+        this.orderEvents.publish(buildOrderEvent('order.created', order, customer));
+      }
+    } catch {
+      // A missing live notification is acceptable; the admin list still shows the order.
+    }
   }
 
   async findAllForUser(userId: string) {

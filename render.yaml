@@ -27,6 +27,11 @@ services:
         value: production
       - key: CORS_ORIGIN
         value: "https://erhan-arslan.github.io"
+      # Live admin notifications: order events are pushed to the .NET service's SignalR hub.
+      - key: DOTNET_SERVICE_URL
+        value: "https://ars-optik-dotnet.onrender.com"
+      - key: INTERNAL_API_KEY
+        generateValue: true
 
   - type: web
     name: ars-optik-dotnet
@@ -50,3 +55,9 @@ services:
           envVarKey: JWT_ACCESS_SECRET
       - key: CORS_ORIGIN
         value: "https://erhan-arslan.github.io"
+      # Shared with the backend, which authenticates its order events with it.
+      - key: INTERNAL_API_KEY
+        fromService:
+          type: web
+          name: ars-optik-backend
+          envVarKey: INTERNAL_API_KEY

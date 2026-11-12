@@ -187,3 +187,16 @@ export interface PrescriptionAnalysis {
   recommendationReason: string;
   advisories: PrescriptionAdvisory[];
 }
+
+/* ---- .NET SignalR admin feed (hub: /hubs/admin-orders, method: orderEvent) ---- */
+
+export interface AdminOrderEvent {
+  type: "order.created" | "order.statusChanged";
+  orderId: string;
+  orderNumber: string;
+  status: OrderStatus;
+  total: number;
+  itemCount: number;
+  customerName: string;
+  occurredAt: string;
+}

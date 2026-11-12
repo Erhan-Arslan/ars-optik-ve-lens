@@ -1,13 +1,28 @@
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { ArrowLeft, Package, ShoppingBag } from "lucide-react";
 import { cn, publicAsset } from "@/lib/utils";
+import { useAdminOrderFeed } from "@/hooks/useAdminOrderFeed";
+import { AdminOrderFeedProvider } from "./AdminOrderFeedProvider";
+import { LiveStatusBadge } from "./LiveStatusBadge";
+import { OrderToasts } from "./OrderToasts";
 
 const navItems = [
-  { to: "/admin/urunler", label: "Ürünler", icon: Package },
-  { to: "/admin/siparisler", label: "Siparişler", icon: ShoppingBag },
+  { to: "/admin/urunler", label: "Ürünler", icon: Package, showsNewOrders: false },
+  { to: "/admin/siparisler", label: "Siparişler", icon: ShoppingBag, showsNewOrders: true },
 ];
 
 export function AdminLayout() {
+  return (
+    <AdminOrderFeedProvider>
+      <AdminShell />
+      <OrderToasts />
+    </AdminOrderFeedProvider>
+  );
+}
+
+function AdminShell() {
+  const { unseenCount } = useAdminOrderFeed();
+
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-7xl flex-col gap-8 px-4 py-10 sm:px-6 lg:flex-row lg:px-8">
       <aside className="flex-none lg:w-56">
@@ -15,6 +30,7 @@ export function AdminLayout() {
         <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-bronze-500">
           Yönetim Paneli
         </p>
+        <LiveStatusBadge />
         <nav className="mt-5 flex flex-row gap-1 overflow-x-auto lg:flex-col lg:overflow-visible">
           {navItems.map((item) => (
             <NavLink
@@ -28,6 +44,14 @@ export function AdminLayout() {
               }
             >
               <item.icon size={16} /> {item.label}
+              {item.showsNewOrders && unseenCount > 0 && (
+                <span
+                  className="ml-auto rounded-full bg-gold-500 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-ink-950"
+                  aria-label={`${unseenCount} yeni sipariş`}
+                >
+                  {unseenCount}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>

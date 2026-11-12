@@ -1,9 +1,11 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { fetchAdminOrders, updateAdminOrderStatus } from "@/services/admin.service";
 import { cn, formatPrice } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { OrderItemsDetail } from "@/components/admin/OrderItemsDetail";
+import { useOrdersPageFeed, type FeedMessage } from "@/hooks/useAdminOrderFeed";
 import type { AdminOrder, OrderStatus } from "@/types";
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
@@ -17,16 +19,26 @@ export function AdminOrdersPage() {
   const [orders, setOrders] = useState<AdminOrder[] | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  // Orders that arrived live during this visit, marked "Yeni" until the page is left.
+  const [newOrderIds, setNewOrderIds] = useState<ReadonlySet<string>>(new Set());
 
-  function load() {
+  useEffect(() => {
     fetchAdminOrders()
       .then(setOrders)
       .catch(() => setOrders([]));
-  }
-
-  useEffect(() => {
-    load();
   }, []);
+
+  // Live updates refetch from NestJS (the source of truth); on failure keep what is shown.
+  const handleFeed = useCallback((message: FeedMessage) => {
+    if (message.kind === "event" && message.event.type === "order.created") {
+      const { orderId } = message.event;
+      setNewOrderIds((ids) => new Set(ids).add(orderId));
+    }
+    fetchAdminOrders()
+      .then(setOrders)
+      .catch(() => undefined);
+  }, []);
+  useOrdersPageFeed(handleFeed);
 
   async function handleStatusChange(id: string, status: OrderStatus) {
     setUpdatingId(id);
@@ -70,7 +82,18 @@ export function AdminOrdersPage() {
               {orders.map((order) => (
                 <Fragment key={order.id}>
                   <tr>
-                    <td className="px-4 py-3 font-medium text-ink-900">#{order.orderNumber}</td>
+                    <td className="px-4 py-3 font-medium text-ink-900">
+                      #{order.orderNumber}
+                      {newOrderIds.has(order.id) && (
+                        <motion.span
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="ml-2 inline-block rounded-full bg-gold-500 px-2 py-0.5 align-middle text-[10px] font-semibold uppercase tracking-wider text-ink-950"
+                        >
+                          Yeni
+                        </motion.span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-ink-600">
                       {order.user.firstName} {order.user.lastName}
                       <span className="block text-xs text-ink-400">{order.user.email}</span>

@@ -24,6 +24,7 @@ docker-compose.yml   postgres, redis, backend, dotnet-service, frontend
 - **Reçete analizi ve cam inceliği önerisi (.NET):** Reçete (SPH/CYL/AKS/PD) .NET servisinde doğrulanır ve eksi silindir formuna çevrilir. Her cam inceliği (1.50 / 1.60 / 1.67 / 1.74) için tahmini kalınlık hesaplanır, en uygun incelik önerilir. Fiyatı NestJS sipariş sırasında sunucuda hesaplar; .NET servisi kapalıysa incelik elle seçilip siparişe devam edilebilir. Reçetenin tamamı siparişe kaydedilir ve admin sipariş detayında görünür.
 - Sepet + Ödeme (mock ödeme sağlayıcısı, kayıtlı adresten hızlı doldurma)
 - Kullanıcı hesabı: sipariş geçmişi, adres defteri (varsayılan adres desteğiyle), favorilerim
+- **Canlı sipariş bildirimleri (.NET SignalR):** Ödemesi alınan her sipariş ve sipariş durumu değişikliği NestJS'ten .NET servisine (`POST /internal/order-events`, `INTERNAL_API_KEY` ile korunur) iletilir; .NET bunu `/hubs/admin-orders` SignalR hub'ı üzerinden açık admin panellerine yayınlar. Panelde bildirim, menüde yeni sipariş sayacı ve sayfa yenilemeden güncellenen sipariş listesi görünür. .NET servisi kapalıysa siparişler etkilenmez, sadece canlı bildirim gelmez.
 - **Yönetim paneli** (`/admin`, sadece `admin` rolündeki kullanıcılar): ürün CRUD, tüm siparişleri görüntüleme ve sipariş durumu güncelleme
 
 ### Admin girişi

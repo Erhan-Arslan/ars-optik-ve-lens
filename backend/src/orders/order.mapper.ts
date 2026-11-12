@@ -14,15 +14,18 @@ export const SLUG_TO_ORDER_STATUS: Record<string, OrderStatus> = {
   iptal: OrderStatus.IPTAL,
 };
 
-export function serializeOrder(order: {
-  status: OrderStatus;
-  subtotal: unknown;
-  shipping: unknown;
-  total: unknown;
-  items: Array<{ unitPrice: unknown; [key: string]: unknown }>;
-  payment?: { status: PaymentStatus } | null;
-  [key: string]: unknown;
-}) {
+// Generic so callers keep the fields of the order they passed in (id, orderNumber, user, ...).
+export function serializeOrder<
+  TItem extends { unitPrice: unknown },
+  TOrder extends {
+    status: OrderStatus;
+    subtotal: unknown;
+    shipping: unknown;
+    total: unknown;
+    items: TItem[];
+    payment?: { status: PaymentStatus } | null;
+  },
+>(order: TOrder) {
   return {
     ...order,
     status: ORDER_STATUS_TO_SLUG[order.status],
@@ -32,11 +35,15 @@ export function serializeOrder(order: {
     items: order.items.map((item) => ({
       ...item,
       unitPrice: Number(item.unitPrice),
-      prescriptionOdCylinder: toNumberOrNull(item.prescriptionOdCylinder),
-      prescriptionOsCylinder: toNumberOrNull(item.prescriptionOsCylinder),
-      prescriptionPupillaryDistance: toNumberOrNull(item.prescriptionPupillaryDistance),
+      prescriptionOdCylinder: toNumberOrNull(readField(item, 'prescriptionOdCylinder')),
+      prescriptionOsCylinder: toNumberOrNull(readField(item, 'prescriptionOsCylinder')),
+      prescriptionPupillaryDistance: toNumberOrNull(readField(item, 'prescriptionPupillaryDistance')),
     })),
   };
+}
+
+function readField(item: object, field: string): unknown {
+  return (item as Record<string, unknown>)[field];
 }
 
 // Prisma returns DECIMAL columns as Decimal objects, which JSON-serialize as strings.

@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { OrderEventsPublisher, buildOrderEvent } from '../order-events/order-events.publisher.js';
 import { SLUG_TO_ORDER_STATUS, serializeOrder } from '../orders/order.mapper.js';
 import type { OrderStatusSlug } from './dto/update-order-status.dto.js';
 
@@ -19,7 +20,10 @@ const ADMIN_ORDER_INCLUDE = {
 
 @Injectable()
 export class AdminOrdersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly orderEvents: OrderEventsPublisher,
+  ) {}
 
   async findAll() {
     const orders = await this.prisma.order.findMany({
@@ -39,6 +43,9 @@ export class AdminOrdersService {
       data: { status: SLUG_TO_ORDER_STATUS[status] },
       include: ADMIN_ORDER_INCLUDE,
     });
-    return serializeOrder(updated);
+    const serialized = serializeOrder(updated);
+    // Other admins with the panel open see the new status without refreshing.
+    this.orderEvents.publish(buildOrderEvent('order.statusChanged', serialized, updated.user));
+    return serialized;
   }
 }

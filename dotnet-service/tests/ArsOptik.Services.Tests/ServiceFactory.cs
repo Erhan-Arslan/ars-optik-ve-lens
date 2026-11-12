@@ -17,6 +17,7 @@ namespace ArsOptik.Services.Tests;
 public sealed class ServiceFactory : WebApplicationFactory<Program>
 {
     public const string Secret = "test-only-access-secret-at-least-32-bytes";
+    public const string InternalApiKey = "test-only-internal-api-key-32-bytes-min";
 
     public static readonly AppUser Customer = new("user-1", "musteri@arsoptik.com", "Ayşe", "Yılmaz", UserRole.User);
     public static readonly AppUser Admin = new("admin-1", "admin@arsoptik.com", "Admin", "Kullanıcı", UserRole.Admin);
@@ -25,6 +26,7 @@ public sealed class ServiceFactory : WebApplicationFactory<Program>
     {
         builder.UseSetting("JWT_ACCESS_SECRET", Secret);
         builder.UseSetting("DATABASE_URL", "postgresql://unused:unused@localhost/unused");
+        builder.UseSetting("INTERNAL_API_KEY", InternalApiKey);
         builder.ConfigureServices(services =>
         {
             services.Replace(ServiceDescriptor.Scoped<IUserDirectory>(_ => new StubUserDirectory([Customer, Admin])));

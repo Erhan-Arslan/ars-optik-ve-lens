@@ -4,6 +4,7 @@ using System.Threading.RateLimiting;
 using ArsOptik.Services.Auth;
 using ArsOptik.Services.Data;
 using ArsOptik.Services.Prescriptions;
+using ArsOptik.Services.Realtime;
 using Microsoft.AspNetCore.HttpOverrides;
 using Scalar.AspNetCore;
 
@@ -49,6 +50,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddArsOptikDatabase();
 builder.Services.AddNestJwtAuthentication();
 builder.Services.AddPrescriptionAnalysis();
+builder.Services.AddRealtime();
 
 var app = builder.Build();
 
@@ -68,6 +70,7 @@ app.MapGet("/health", () => Results.Ok(new { status = "ok" }))
     .ExcludeFromDescription();
 app.MapAccountEndpoints();
 app.MapPrescriptionEndpoints();
+app.MapRealtimeEndpoints();
 
 app.Run();
 
